@@ -1,9 +1,11 @@
+
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import {
   ExternalLink, BookOpen, Activity, ArrowUpRight, Globe2,
   Languages, MapPin, Orbit, Search, Telescope, Layers3,
-  GitCompareArrows, Satellite
+  GitCompareArrows, Satellite, BrainCircuit, Sparkles,
+  Send, X, Bot
 } from 'lucide-react';
 import './App.css';
 import AtlasGeologico from './AtlasGeologico';
@@ -30,7 +32,7 @@ const regions = [
     elevation: '~−2.6 km',
     diameter: '~45 km',
     details: 'A Cratera Jezero abrigou um antigo lago e apresenta um delta formado pela entrada de água. Rochas sedimentares e minerais encontrados na região ajudam a investigar a presença de água líquida no passado de Marte.',
-    mission: 'O rover Perseverance explora a região, analisa rochas e coleta amostras para uma possível futura campanha de retorno à Terra.',
+    mission: 'O rover Perseverance explora a região, analisa rochas e coleta amostras.',
     instrument: 'Perseverance, Mastcam-Z, SuperCam e PIXL'
   },
   {
@@ -41,7 +43,7 @@ const regions = [
     lon: '59.2° W',
     elevation: 'varies',
     diameter: '~4.000 km de extensão',
-    details: 'Valles Marineris é um enorme sistema de cânions próximo à região equatorial de Marte. Suas paredes expõem diferentes camadas geológicas, permitindo investigar a história da crosta e os processos que modificaram a superfície.',
+    details: 'Valles Marineris é um enorme sistema de cânions próximo à região equatorial de Marte. Suas paredes expõem diferentes camadas geológicas.',
     mission: 'Imagens orbitais permitem estudar fraturas, deslizamentos, depósitos e possíveis evidências de alterações pela água.',
     instrument: 'MRO, HiRISE, CTX e MOLA'
   },
@@ -53,7 +55,7 @@ const regions = [
     lon: '137.8° E',
     elevation: '~−4.5 km',
     diameter: '~154 km',
-    details: 'A Cratera Gale é uma cratera de impacto com uma montanha central chamada Aeolis Mons, também conhecida como Monte Sharp. Suas camadas sedimentares registram mudanças ambientais ocorridas ao longo da história de Marte.',
+    details: 'A Cratera Gale é uma cratera de impacto com uma montanha central chamada Aeolis Mons, também conhecida como Monte Sharp.',
     mission: 'O rover Curiosity investiga a composição das rochas, minerais e condições ambientais antigas.',
     instrument: 'Curiosity, ChemCam, SAM e Mastcam'
   },
@@ -65,7 +67,7 @@ const regions = [
     lon: '70° E',
     elevation: 'deep basin',
     diameter: '~2.300 km',
-    details: 'Hellas Planitia é uma gigantesca bacia de impacto no hemisfério sul de Marte. Sua grande profundidade influencia a pressão atmosférica local e cria condições ambientais diferentes de outras regiões do planeta.',
+    details: 'Hellas Planitia é uma gigantesca bacia de impacto no hemisfério sul de Marte. Sua grande profundidade influencia as condições ambientais locais.',
     mission: 'Observações orbitais ajudam a investigar sua topografia, depósitos, clima e possíveis formações relacionadas ao gelo.',
     instrument: 'MOLA, THEMIS e HiRISE'
   },
@@ -77,7 +79,7 @@ const regions = [
     lon: '147° E',
     elevation: '~12 km',
     diameter: 'centenas de quilômetros',
-    details: 'Elysium Mons é um grande vulcão em escudo localizado na província vulcânica de Elysium. A região possui estruturas vulcânicas e depósitos que ajudam a compreender a atividade geológica marciana.',
+    details: 'Elysium Mons é um grande vulcão em escudo localizado na província vulcânica de Elysium.',
     mission: 'Dados orbitais são utilizados para analisar fluxos de lava, terrenos vulcânicos e a evolução da região.',
     instrument: 'MOLA, THEMIS e imagens orbitais'
   },
@@ -89,8 +91,8 @@ const regions = [
     lon: '0° E',
     elevation: 'varies',
     diameter: 'centenas de quilômetros',
-    details: 'A calota polar norte contém gelo de água e apresenta depósitos sazonais de dióxido de carbono. Suas camadas podem preservar registros de mudanças climáticas ao longo de períodos muito extensos.',
-    mission: 'Instrumentos orbitais observam a composição, espessura, variações sazonais e estruturas das camadas polares.',
+    details: 'A calota polar norte contém gelo de água e apresenta depósitos sazonais de dióxido de carbono. Suas camadas podem preservar registros de mudanças climáticas.',
+    mission: 'Instrumentos orbitais observam a composição, espessura e variações sazonais.',
     instrument: 'MOLA, SHARAD e instrumentos climáticos orbitais'
   }
 ];
@@ -194,7 +196,6 @@ const labels = {
   }
 };
 
-
 function MarsGlobe() {
   const mount = useRef(null);
 
@@ -203,7 +204,6 @@ function MarsGlobe() {
     if (!host) return;
 
     const scene = new THREE.Scene();
-
     const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
     camera.position.set(0, 0, 4);
 
@@ -212,25 +212,19 @@ function MarsGlobe() {
       alpha: true
     });
 
-    renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio || 1, 1.75)
-    );
-
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     host.appendChild(renderer.domElement);
 
-    // Textura provisória caso o MOLA não carregue
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 512;
 
     const ctx = canvas.getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, 1024, 512);
-
     gradient.addColorStop(0, '#713522');
     gradient.addColorStop(0.5, '#bd6846');
     gradient.addColorStop(1, '#55271f');
-
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1024, 512);
 
@@ -238,7 +232,6 @@ function MarsGlobe() {
     fallbackTexture.colorSpace = THREE.SRGBColorSpace;
 
     const geometry = new THREE.SphereGeometry(1.28, 128, 96);
-
     const material = new THREE.MeshStandardMaterial({
       map: fallbackTexture,
       roughness: 1,
@@ -248,10 +241,7 @@ function MarsGlobe() {
     const mars = new THREE.Mesh(geometry, material);
     scene.add(mars);
 
-    // MOLA REAL - NASA MARSHOWEB
-    const MOLA_URL =
-    '/mola-texture';
-
+    const MOLA_URL = '/mola-texture';
     let molaTexture = null;
 
     const molaLoader = new THREE.TextureLoader();
@@ -259,36 +249,24 @@ function MarsGlobe() {
 
     molaLoader.load(
       MOLA_URL,
-
       (loadedTexture) => {
         loadedTexture.colorSpace = THREE.SRGBColorSpace;
-
         loadedTexture.anisotropy = Math.min(
           renderer.capabilities.getMaxAnisotropy(),
           8
         );
-
         molaTexture = loadedTexture;
-
         material.map = loadedTexture;
         material.needsUpdate = true;
-
         console.log('NOVASTRIUM: MOLA NASA carregado com sucesso!');
       },
-
       undefined,
-
       (error) => {
-        console.error(
-          'NOVASTRIUM: falha ao carregar o mapa MOLA.',
-          error
-        );
+        console.error('NOVASTRIUM: falha ao carregar o mapa MOLA.', error);
       }
     );
 
-    // Marcadores aproximados das sete regiões
     const markerGroup = new THREE.Group();
-
     const markerData = [
       { lat: 18.65, lon: 226.2 },
       { lat: 18.38, lon: 77.58 },
@@ -311,9 +289,7 @@ function MarsGlobe() {
 
       const dot = new THREE.Mesh(
         new THREE.SphereGeometry(0.018, 12, 12),
-        new THREE.MeshBasicMaterial({
-          color: 0xffa078
-        })
+        new THREE.MeshBasicMaterial({ color: 0xffa078 })
       );
 
       dot.position.copy(position);
@@ -329,17 +305,13 @@ function MarsGlobe() {
         })
       );
 
-      halo.position.copy(
-        position.clone().multiplyScalar(1.002)
-      );
-
+      halo.position.copy(position.clone().multiplyScalar(1.002));
       halo.lookAt(position.clone().multiplyScalar(2));
       markerGroup.add(halo);
     });
 
     mars.add(markerGroup);
 
-    // Atmosfera
     const atmosphere = new THREE.Mesh(
       new THREE.SphereGeometry(1.34, 96, 72),
       new THREE.MeshBasicMaterial({
@@ -351,7 +323,6 @@ function MarsGlobe() {
     );
 
     scene.add(atmosphere);
-
     scene.add(new THREE.AmbientLight(0x9d9aaa, 0.72));
 
     const sun = new THREE.DirectionalLight(0xffd4b5, 2.7);
@@ -362,7 +333,6 @@ function MarsGlobe() {
     fill.position.set(-4, -1, -3);
     scene.add(fill);
 
-    // Rotação e zoom
     let frame;
     let dragging = false;
     let lastX = 0;
@@ -372,21 +342,17 @@ function MarsGlobe() {
       dragging = true;
       lastX = event.clientX;
       lastY = event.clientY;
-
       renderer.domElement.setPointerCapture?.(event.pointerId);
     };
 
     const move = (event) => {
       if (!dragging) return;
-
       mars.rotation.y += (event.clientX - lastX) * 0.005;
-
       mars.rotation.x = THREE.MathUtils.clamp(
         mars.rotation.x + (event.clientY - lastY) * 0.004,
         -1.1,
         1.1
       );
-
       lastX = event.clientX;
       lastY = event.clientY;
     };
@@ -408,17 +374,13 @@ function MarsGlobe() {
     renderer.domElement.addEventListener('pointerup', up);
     renderer.domElement.addEventListener('pointercancel', up);
     renderer.domElement.addEventListener('pointerleave', up);
-    renderer.domElement.addEventListener('wheel', wheel, {
-      passive: true
-    });
+    renderer.domElement.addEventListener('wheel', wheel, { passive: true });
 
     const resize = () => {
       const width = host.clientWidth;
       const height = host.clientHeight;
-
       camera.aspect = width / Math.max(height, 1);
       camera.updateProjectionMatrix();
-
       renderer.setSize(width, height);
     };
 
@@ -428,11 +390,7 @@ function MarsGlobe() {
 
     const animate = () => {
       frame = requestAnimationFrame(animate);
-
-      if (!dragging) {
-        mars.rotation.y += 0.00065;
-      }
-
+      if (!dragging) mars.rotation.y += 0.00065;
       renderer.render(scene, camera);
     };
 
@@ -452,14 +410,21 @@ function MarsGlobe() {
       geometry.dispose();
       material.dispose();
       fallbackTexture.dispose();
+      if (molaTexture) molaTexture.dispose();
 
-      if (molaTexture) {
-        molaTexture.dispose();
-      }
+      markerGroup.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach((item) => item.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
 
       atmosphere.geometry.dispose();
       atmosphere.material.dispose();
-
       renderer.dispose();
 
       if (renderer.domElement.parentNode === host) {
@@ -477,7 +442,208 @@ function MarsGlobe() {
   );
 }
 
- export default function App() {
+/* AST RONEXUS AI — MÓDULO INTEGRADO */
+function AstroNexusAI({ lang }) {
+  const [question, setQuestion] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState('jezero');
+
+  const selected = regions.find(
+    (region) => region.id === selectedRegion
+  ) || regions[0];
+
+  const sendQuestion = () => {
+    const text = question.trim();
+    if (!text) return;
+
+    const userMessage = {
+      role: 'user',
+      text
+    };
+
+    const normalized = text.toLowerCase();
+    let answer;
+
+    if (
+      normalized.includes('jezero') ||
+      normalized.includes('água') ||
+      normalized.includes('agua')
+    ) {
+      answer = lang === 'pt'
+        ? 'A Cratera Jezero apresenta evidências geológicas de um antigo ambiente lacustre e um delta. O rover Perseverance investiga suas rochas e coleta amostras. Essas características tornam a região importante para estudos sobre a história da água em Marte.'
+        : 'Jezero Crater shows geological evidence of an ancient lake environment and a delta. The Perseverance rover investigates its rocks and collects samples.';
+    } else if (
+      normalized.includes('olympus') ||
+      normalized.includes('vulcão') ||
+      normalized.includes('vulcao')
+    ) {
+      answer = lang === 'pt'
+        ? 'Olympus Mons é um enorme vulcão em escudo. Seus fluxos de lava e dimensões ajudam a investigar a evolução vulcânica e a crosta de Marte.'
+        : 'Olympus Mons is a giant shield volcano. Its lava flows and dimensions help investigate Martian volcanic evolution and crust.';
+    } else if (
+      normalized.includes('valles') ||
+      normalized.includes('cânion') ||
+      normalized.includes('canion')
+    ) {
+      answer = lang === 'pt'
+        ? 'Valles Marineris é um sistema de cânions de escala continental. Imagens orbitais ajudam a investigar fraturas, camadas geológicas e processos de erosão.'
+        : 'Valles Marineris is a continental-scale canyon system. Orbital images help investigate fractures, geological layers and erosion processes.';
+    } else {
+      answer = lang === 'pt'
+        ? `Com base nas informações cadastradas no NOVASTRIUM, ${selected.name} é classificada como ${localizedType(selected, 'pt')}. ${selected.details} Para aprofundar a investigação, consulte as referências científicas da NASA e do USGS. Esta resposta é informativa e não representa uma análise de IA conectada em tempo real.`
+        : `Based on the information registered in NOVASTRIUM, ${selected.name} is classified as ${selected.type}. ${selected.details} Consult NASA and USGS scientific references for further investigation. This is an informational response, not a live AI analysis.`;
+    }
+
+    setMessages((previous) => [
+      ...previous,
+      userMessage,
+      { role: 'assistant', text: answer }
+    ]);
+
+    setQuestion('');
+  };
+
+  return (
+    <section className="astro-ai" id="astronexus-ai">
+      <div className="eyebrow">
+        06 / INTELLIGENCE MODULE
+      </div>
+
+      <div className="astro-ai-heading">
+        <div>
+          <h2>
+            <BrainCircuit size={27} />
+            AstroNexusAI
+          </h2>
+          <p>
+            {lang === 'pt'
+              ? 'Assistente de pesquisa e interpretação de informações planetárias.'
+              : 'Research assistant for planetary information and interpretation.'}
+          </p>
+        </div>
+        <span className="ai-status">
+          <span />
+          {lang === 'pt' ? 'MÓDULO DISPONÍVEL' : 'MODULE AVAILABLE'}
+        </span>
+      </div>
+
+      <div className="astro-ai-layout">
+        <div className="astro-ai-info">
+          <div className="ai-icon">
+            <Sparkles size={27} />
+          </div>
+
+          <h3>
+            {lang === 'pt'
+              ? 'Explore o conhecimento de Marte'
+              : 'Explore knowledge about Mars'}
+          </h3>
+
+          <p>
+            {lang === 'pt'
+              ? 'Selecione uma região e consulte informações científicas cadastradas no sistema.'
+              : 'Select a region and consult scientific information registered in the system.'}
+          </p>
+
+          <label>
+            {lang === 'pt' ? 'Região de pesquisa' : 'Research region'}
+            <select
+              value={selectedRegion}
+              onChange={(event) => setSelectedRegion(event.target.value)}
+            >
+              {regions.map((region) => (
+                <option key={region.id} value={region.id}>
+                  {region.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="ai-selected">
+            <MapPin size={17} />
+            <div>
+              <strong>{selected.name}</strong>
+              <small>{selected.lat} · {selected.lon}</small>
+            </div>
+          </div>
+
+          <p className="ai-disclaimer">
+            {lang === 'pt'
+              ? 'Versão informativa local. Não conectada a uma API de inteligência artificial.'
+              : 'Local informational version. Not connected to an artificial intelligence API.'}
+          </p>
+        </div>
+
+        <div className="astro-chat">
+          <div className="astro-chat-header">
+            <Bot size={19} />
+            <div>
+              <strong>AstroNexusAI</strong>
+              <small>
+                {lang === 'pt' ? 'Pesquisa planetária' : 'Planetary research'}
+              </small>
+            </div>
+          </div>
+
+          <div className="astro-chat-messages">
+            {messages.length === 0 && (
+              <div className="ai-welcome">
+                <Sparkles size={22} />
+                <strong>
+                  {lang === 'pt'
+                    ? 'Olá, pesquisador!'
+                    : 'Hello, researcher!'}
+                </strong>
+                <p>
+                  {lang === 'pt'
+                    ? 'Pergunte sobre Marte, suas regiões, geologia e missões espaciais.'
+                    : 'Ask about Mars, its regions, geology and space missions.'}
+                </p>
+              </div>
+            )}
+
+            {messages.map((message, index) => (
+              <div
+                key={`${index}-${message.role}`}
+                className={`chat-message ${message.role}`}
+              >
+                <span>
+                  {message.role === 'user'
+                    ? (lang === 'pt' ? 'Você' : 'You')
+                    : 'AstroNexusAI'}
+                </span>
+                <p>{message.text}</p>
+              </div>
+            ))}
+          </div>
+
+          <form
+            className="astro-chat-input"
+            onSubmit={(event) => {
+              event.preventDefault();
+              sendQuestion();
+            }}
+          >
+            <input
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              placeholder={
+                lang === 'pt'
+                  ? 'Pergunte sobre Marte...'
+                  : 'Ask about Mars...'
+              }
+            />
+            <button type="submit" aria-label="Enviar pergunta">
+              <Send size={18} />
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function App() {
   const [lang, setLang] = useState('pt');
   const [tab, setTab] = useState('overview');
   const [selected, setSelected] = useState('jezero');
@@ -489,18 +655,16 @@ function MarsGlobe() {
   const t = labels[lang];
 
   const current =
-    regions.find(region => region.id === selected) || regions[0];
+    regions.find((region) => region.id === selected) || regions[0];
 
   const a =
-    regions.find(region => region.id === first) || regions[0];
+    regions.find((region) => region.id === first) || regions[0];
 
   const b =
-    regions.find(region => region.id === second) || regions[1];
+    regions.find((region) => region.id === second) || regions[1];
 
-  const filtered = regions.filter(region => {
-    const matchesKind =
-      kind === 'all' || region.type === kind;
-
+  const filtered = regions.filter((region) => {
+    const matchesKind = kind === 'all' || region.type === kind;
     const search = query.toLowerCase();
 
     const matchesSearch =
@@ -510,7 +674,7 @@ function MarsGlobe() {
     return matchesKind && matchesSearch;
   });
 
-  const scrollTo = id => {
+  const scrollTo = (id) => {
     setTab(id);
     document.getElementById(id)?.scrollIntoView({
       behavior: 'smooth'
@@ -519,13 +683,11 @@ function MarsGlobe() {
 
   return (
     <main className="app">
-
       <header className="topbar">
         <a className="brand" href="#overview">
           <span className="brand-icon">
             <Orbit size={20} />
           </span>
-
           <span>
             NOVASTRIUM
             <span className="brand-accent">-3D+</span>
@@ -559,7 +721,6 @@ function MarsGlobe() {
       </header>
 
       <section className="hero" id="overview">
-
         <div className="hero-copy">
           <div className="eyebrow">
             <span />
@@ -599,10 +760,7 @@ function MarsGlobe() {
           <div className="orbit orbit-a" />
           <div className="orbit orbit-b" />
 
-          <div className="planet-caption">
-            {t.globe}
-          </div>
-
+          <div className="planet-caption">{t.globe}</div>
           <MarsGlobe />
 
           <div className="planet-coord">
@@ -617,59 +775,42 @@ function MarsGlobe() {
           <div className="eyebrow">
             01 / {t.about.toUpperCase()}
           </div>
-
           <h2>{t.missionTitle}</h2>
         </div>
-
         <p>{t.missionText}</p>
       </section>
 
       <section className="regions-section" id="regions">
-
         <div className="section-title">
           <div>
-            <div className="eyebrow">
-              02 / MARTIAN ATLAS
-            </div>
-
+            <div className="eyebrow">02 / MARTIAN ATLAS</div>
             <h2>{t.regions}</h2>
           </div>
 
           <label className="search">
             <Search size={16} />
-
             <input
               value={query}
-              onChange={event => setQuery(event.target.value)}
+              onChange={(event) => setQuery(event.target.value)}
               placeholder={
-                lang === 'pt'
-                  ? 'Buscar região...'
-                  : 'Search regions...'
+                lang === 'pt' ? 'Buscar região...' : 'Search regions...'
               }
             />
           </label>
         </div>
 
         <div className="region-layout">
-
           <div className="region-list">
-
             <label className="filter-label">
-              {lang === 'pt'
-                ? 'Filtrar formação'
-                : 'Filter formation'}
-
+              {lang === 'pt' ? 'Filtrar formação' : 'Filter formation'}
               <select
                 value={kind}
-                onChange={event => setKind(event.target.value)}
+                onChange={(event) => setKind(event.target.value)}
               >
                 <option value="all">
-                  {lang === 'pt'
-                    ? 'Todas as formações'
-                    : 'All formations'}
+                  {lang === 'pt' ? 'Todas as formações' : 'All formations'}
                 </option>
-
-                {[...new Set(regions.map(region => region.type))].map(type => (
+                {[...new Set(regions.map((region) => region.type))].map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>
@@ -677,7 +818,7 @@ function MarsGlobe() {
               </select>
             </label>
 
-            {filtered.map(region => (
+            {filtered.map((region) => (
               <button
                 key={region.id}
                 className={
@@ -691,7 +832,6 @@ function MarsGlobe() {
                   <strong>{region.name}</strong>
                   <small>{localizedType(region, lang)}</small>
                 </span>
-
                 <ArrowUpRight size={16} />
               </button>
             ))}
@@ -706,42 +846,31 @@ function MarsGlobe() {
           </div>
 
           <article className="detail-panel">
-
             <div className="panel-top">
-              <span className="eyebrow">
-                {t.details}
-              </span>
-
+              <span className="eyebrow">{t.details}</span>
               <span className="region-tag">
                 {localizedType(current, lang)}
               </span>
             </div>
 
             <h3>{current.name}</h3>
-
-            <p>
-              {current.details}
-            </p>
+            <p>{current.details}</p>
 
             <div className="coordinates">
-
               <div>
                 <small>LATITUDE</small>
                 <strong>{current.lat}</strong>
               </div>
-
               <div>
                 <small>LONGITUDE</small>
                 <strong>{current.lon}</strong>
               </div>
-
               <div>
                 <small>
                   {lang === 'pt' ? 'ELEVAÇÃO' : 'ELEVATION'}
                 </small>
                 <strong>{current.elevation}</strong>
               </div>
-
             </div>
 
             <div className="scientific-info">
@@ -793,31 +922,23 @@ function MarsGlobe() {
                 ? 'Informações descritivas reunidas a partir de referências científicas. Os dados apresentados não representam uma consulta em tempo real às bases da NASA.'
                 : 'Descriptive information compiled from scientific references. The displayed data does not represent a real-time query to NASA databases.'}
             </p>
-
           </article>
         </div>
       </section>
 
       <section className="compare-section" id="compare">
-
-        <div className="eyebrow">
-          03 / COMPARATIVE STUDY
-        </div>
-
+        <div className="eyebrow">03 / COMPARATIVE STUDY</div>
         <h2>{t.compareTitle}</h2>
-
         <p className="muted">{t.compareText}</p>
 
         <div className="compare-grid">
-
           <label>
             {t.chooseA}
-
             <select
               value={first}
-              onChange={event => setFirst(event.target.value)}
+              onChange={(event) => setFirst(event.target.value)}
             >
-              {regions.map(region => (
+              {regions.map((region) => (
                 <option key={region.id} value={region.id}>
                   {region.name}
                 </option>
@@ -831,60 +952,46 @@ function MarsGlobe() {
 
           <label>
             {t.chooseB}
-
             <select
               value={second}
-              onChange={event => setSecond(event.target.value)}
+              onChange={(event) => setSecond(event.target.value)}
             >
-              {regions.map(region => (
+              {regions.map((region) => (
                 <option key={region.id} value={region.id}>
                   {region.name}
                 </option>
               ))}
             </select>
           </label>
-
         </div>
 
         <div className="compare-results">
-
           <div>
             <span>{a.name}</span>
             <strong>{localizedType(a, lang)}</strong>
             <small>{a.details}</small>
           </div>
-
           <div>
             <span>{b.name}</span>
             <strong>{localizedType(b, lang)}</strong>
             <small>{b.details}</small>
           </div>
-
         </div>
       </section>
 
       <section className="tools-section">
-
-        <div className="eyebrow">
-          04 / EXPLORATION MODULES
-        </div>
-
+        <div className="eyebrow">04 / EXPLORATION MODULES</div>
         <h2>{t.cardsTitle}</h2>
 
         <div className="tool-grid">
           {t.cards.map((card, index) => {
-            const Icon = [
-              Globe2,
-              Layers3,
-              GitCompareArrows
-            ][index];
+            const Icon = [Globe2, Layers3, GitCompareArrows][index];
 
             return (
               <article key={card[0]}>
                 <div className="tool-icon">
                   <Icon size={20} />
                 </div>
-
                 <small>0{index + 1}</small>
                 <h3>{card[0]}</h3>
                 <p>{card[1]}</p>
@@ -901,16 +1008,13 @@ function MarsGlobe() {
         <AtlasGeologico />
       </section>
 
-      <section className="sources-section" id="sources">
+      <AstroNexusAI lang={lang} />
 
-        <div className="eyebrow">
-          05 / SCIENTIFIC REFERENCES
-        </div>
+      <section className="sources-section" id="sources">
+        <div className="eyebrow">07 / SCIENTIFIC REFERENCES</div>
 
         <h2>
-          {lang === 'pt'
-            ? 'Fontes científicas'
-            : 'Scientific sources'}
+          {lang === 'pt' ? 'Fontes científicas' : 'Scientific sources'}
         </h2>
 
         <p className="muted">
@@ -920,7 +1024,7 @@ function MarsGlobe() {
         </p>
 
         <div className="sources-grid">
-          {sources.map(source => (
+          {sources.map((source) => (
             <a
               key={source.url}
               href={source.url}
@@ -933,15 +1037,12 @@ function MarsGlobe() {
             </a>
           ))}
         </div>
-
       </section>
 
       <footer>
         <span>{t.footer}</span>
         <span>NOVASTRIUM-3D+ © 2026</span>
       </footer>
-
     </main>
   );
- }
-
+}
